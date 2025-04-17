@@ -19,7 +19,7 @@ const authController = new AuthController(loginUseCase, registerUseCase);
 const router = Router();
 
 // Definir rutas
-router.post('/login', (req, res) => authController.login(req, res));
-router.post('/register', (req, res) => authController.register(req, res));
+router.post('/login', (req, res, next) => authController.login(req, res, next));
+router.post('/register', (req, res, next) => authController.register(req, res, next));
 
 export default router; 

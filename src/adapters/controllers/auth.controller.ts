@@ -1,6 +1,8 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { LoginUseCase } from '../../core/useCases/auth/login.usecase';
 import { RegisterUseCase } from '../../core/useCases/auth/register.usecase';
+import { BadRequestError } from '../../frameworks/web/errors/http-errors';
+import { ParametroRequeridoError } from '../../core/errors/domain-errors';
 
 export class AuthController {
   constructor(
@@ -8,17 +10,17 @@ export class AuthController {
     private registerUseCase: RegisterUseCase
   ) {}
 
-  async login(req: Request, res: Response): Promise<void> {
+  async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { email, password } = req.body;
 
       // Validaciones básicas
-      if (!email || !password) {
-        res.status(400).json({
-          status: 'error',
-          message: 'Debe proporcionar email y contraseña'
-        });
-        return;
+      if (!email) {
+        throw new ParametroRequeridoError('email');
+      }
+      
+      if (!password) {
+        throw new ParametroRequeridoError('password');
       }
 
       const result = await this.loginUseCase.execute({ email, password });
@@ -28,29 +30,33 @@ export class AuthController {
         data: result
       });
     } catch (error) {
-      let message = 'Error en la autenticación';
-      if (error instanceof Error) {
-        message = error.message;
-      }
-      
-      res.status(401).json({
-        status: 'error',
-        message
-      });
+      next(error);
     }
   }
 
-  async register(req: Request, res: Response): Promise<void> {
+  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { nombre, cedula, telefono, email, password } = req.body;
 
       // Validaciones básicas
-      if (!nombre || !cedula || !telefono || !email || !password) {
-        res.status(400).json({
-          status: 'error',
-          message: 'Todos los campos son obligatorios'
-        });
-        return;
+      if (!nombre) {
+        throw new ParametroRequeridoError('nombre');
+      }
+      
+      if (!cedula) {
+        throw new ParametroRequeridoError('cedula');
+      }
+      
+      if (!telefono) {
+        throw new ParametroRequeridoError('telefono');
+      }
+      
+      if (!email) {
+        throw new ParametroRequeridoError('email');
+      }
+      
+      if (!password) {
+        throw new ParametroRequeridoError('password');
       }
 
       const result = await this.registerUseCase.execute({
@@ -66,23 +72,7 @@ export class AuthController {
         data: result
       });
     } catch (error) {
-      let message = 'Error en el registro';
-      let statusCode = 500;
-      
-      if (error instanceof Error) {
-        message = error.message;
-        if (
-          message.includes('ya está registrado') || 
-          message.includes('ya está registrada')
-        ) {
-          statusCode = 409; // Conflict
-        }
-      }
-      
-      res.status(statusCode).json({
-        status: 'error',
-        message
-      });
+      next(error);
     }
   }
 } 

@@ -1,9 +1,11 @@
 import { Application } from 'express';
 import authRoutes from './auth.routes';
+import envioRoutes from './envio.routes';
 
 export const setupRoutes = (app: Application): void => {
   // API versioning
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/envios', envioRoutes);
   
   // Ruta base para verificar que el servidor está funcionando
   app.get('/', (req, res) => {

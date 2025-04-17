@@ -147,3 +147,12 @@ INSERT INTO roles (nombre) VALUES ('usuario'), ('transportista'), ('admin');
 -- Insertar estados por defecto
 INSERT INTO estados_envio (nombre_estado)
 VALUES ('en_espera'), ('en_transito'), ('entregado');
+
+-- Insertar vehiculos por defecto
+INSERT INTO vehiculos (tipo, placa, capacidad_maxima)
+VALUES ('moto', 'ABC123', 150.00);
+INSERT INTO vehiculos (tipo, placa, capacidad_maxima)
+VALUES ('minivan', 'XYZ789', 750.00);
+INSERT INTO vehiculos (tipo, placa, capacidad_maxima)
+VALUES ('camion', 'TRK456', 5000.00);
+

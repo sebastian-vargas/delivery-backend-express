@@ -18,6 +18,10 @@
     {
       "name": "auth",
       "description": "Operaciones de autenticación"
+    },
+    {
+      "name": "envios",
+      "description": "Operaciones relacionadas con envíos"
     }
   ],
   "paths": {
@@ -36,7 +40,7 @@
                 "properties": {
                   "nombre": {
                     "type": "string",
-                    "example": "Johan Vargas"
+                    "example": "Juan Pérez"
                   },
                   "cedula": {
                     "type": "string",
@@ -49,7 +53,7 @@
                   "email": {
                     "type": "string",
                     "format": "email",
-                    "example": "johan@example.com"
+                    "example": "juan@example.com"
                   },
                   "password": {
                     "type": "string",
@@ -82,11 +86,11 @@
                         },
                         "nombre": {
                           "type": "string",
-                          "example": "Johan Vargas"
+                          "example": "Juan Pérez"
                         },
                         "email": {
                           "type": "string",
-                          "example": "johan@example.com"
+                          "example": "juan@example.com"
                         }
                       }
                     }
@@ -154,7 +158,7 @@
                   "email": {
                     "type": "string",
                     "format": "email",
-                    "example": "johan@example.com"
+                    "example": "juan@example.com"
                   },
                   "password": {
                     "type": "string",
@@ -194,11 +198,11 @@
                             },
                             "nombre": {
                               "type": "string",
-                              "example": "Johan Vargas"
+                              "example": "Juan Pérez"
                             },
                             "email": {
                               "type": "string",
-                              "example": "johan@example.com"
+                              "example": "juan@example.com"
                             },
                             "role": {
                               "type": "string",
@@ -247,6 +251,660 @@
                     "message": {
                       "type": "string",
                       "example": "Credenciales inválidas"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envios": {
+      "post": {
+        "tags": ["envios"],
+        "summary": "Crear una nueva orden de envío",
+        "description": "Crea una nueva orden de envío con información del paquete y dirección de destino",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["paquete", "direccion"],
+                "properties": {
+                  "paquete": {
+                    "type": "object",
+                    "required": ["tipo_envio", "peso", "largo", "ancho", "alto", "tipo_producto"],
+                    "properties": {
+                      "tipo_envio": {
+                        "type": "string",
+                        "enum": ["mensajeria", "paqueteria"],
+                        "example": "paqueteria"
+                      },
+                      "peso": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 5.2
+                      },
+                      "largo": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 30
+                      },
+                      "ancho": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 20
+                      },
+                      "alto": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 15
+                      },
+                      "tipo_producto": {
+                        "type": "string",
+                        "example": "Electrónica"
+                      }
+                    }
+                  },
+                  "direccion": {
+                    "type": "object",
+                    "required": ["calle", "ciudad"],
+                    "properties": {
+                      "calle": {
+                        "type": "string",
+                        "example": "Calle 123 #45-67"
+                      },
+                      "ciudad": {
+                        "type": "string",
+                        "example": "Bogotá"
+                      },
+                      "departamento": {
+                        "type": "string",
+                        "example": "Cundinamarca"
+                      },
+                      "codigo_postal": {
+                        "type": "string",
+                        "example": "110111"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Orden de envío creada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "estado_actual": {
+                          "type": "string",
+                          "example": "en_espera"
+                        },
+                        "paquete": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "tipo_envio": {
+                              "type": "string",
+                              "example": "paqueteria"
+                            },
+                            "peso": {
+                              "type": "number",
+                              "example": 5.2
+                            },
+                            "dimensiones": {
+                              "type": "object",
+                              "properties": {
+                                "largo": {
+                                  "type": "number",
+                                  "example": 30
+                                },
+                                "ancho": {
+                                  "type": "number",
+                                  "example": 20
+                                },
+                                "alto": {
+                                  "type": "number",
+                                  "example": 15
+                                }
+                              }
+                            },
+                            "tipo_producto": {
+                              "type": "string",
+                              "example": "Electrónica"
+                            }
+                          }
+                        },
+                        "direccion": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "calle": {
+                              "type": "string",
+                              "example": "Calle 123 #45-67"
+                            },
+                            "ciudad": {
+                              "type": "string",
+                              "example": "Bogotá"
+                            },
+                            "departamento": {
+                              "type": "string",
+                              "example": "Cundinamarca"
+                            },
+                            "codigo_postal": {
+                              "type": "string",
+                              "example": "110111"
+                            }
+                          }
+                        },
+                        "fecha_registro": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-04-16T10:30:00Z"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o dirección inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "El peso debe ser mayor a 0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Debe estar autenticado para crear órdenes de envío"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al crear la orden de envío"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envios/validar-direccion": {
+      "post": {
+        "tags": ["envios"],
+        "summary": "Validar una dirección",
+        "description": "Verifica si una dirección es válida antes de crear una orden de envío",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["calle", "ciudad"],
+                "properties": {
+                  "calle": {
+                    "type": "string",
+                    "example": "Calle 123 #45-67"
+                  },
+                  "ciudad": {
+                    "type": "string",
+                    "example": "Bogotá"
+                  },
+                  "departamento": {
+                    "type": "string",
+                    "example": "Cundinamarca"
+                  },
+                  "codigo_postal": {
+                    "type": "string",
+                    "example": "110111"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado de validación de dirección",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "valida": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "mensaje": {
+                          "type": "string",
+                          "example": "Dirección validada con éxito"
+                        },
+                        "sugerencias": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": []
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "La calle y la ciudad son requeridas"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al validar la dirección"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envios/mis-envios": {
+      "get": {
+        "tags": ["envios"],
+        "summary": "Listar envíos del usuario",
+        "description": "Obtiene la lista de envíos creados por el usuario autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de envíos del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "estado_actual": {
+                            "type": "string",
+                            "example": "en_espera"
+                          },
+                          "fecha_registro": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2023-04-16T10:30:00Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No se proporcionó un token de autenticación"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "No implementado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Endpoint no implementado todavía"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envios/{id}": {
+      "get": {
+        "tags": ["envios"],
+        "summary": "Obtener un envío por ID",
+        "description": "Obtiene los detalles de un envío específico",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la orden de envío",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del envío",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "estado_actual": {
+                          "type": "string",
+                          "example": "en_espera"
+                        },
+                        "paquete": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "tipo_envio": {
+                              "type": "string",
+                              "example": "paqueteria"
+                            },
+                            "peso": {
+                              "type": "number",
+                              "example": 5.2
+                            },
+                            "dimensiones": {
+                              "type": "object",
+                              "properties": {
+                                "largo": {
+                                  "type": "number",
+                                  "example": 30
+                                },
+                                "ancho": {
+                                  "type": "number",
+                                  "example": 20
+                                },
+                                "alto": {
+                                  "type": "number",
+                                  "example": 15
+                                }
+                              }
+                            },
+                            "tipo_producto": {
+                              "type": "string",
+                              "example": "Electrónica"
+                            }
+                          }
+                        },
+                        "direccion": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "calle": {
+                              "type": "string",
+                              "example": "Calle 123 #45-67"
+                            },
+                            "ciudad": {
+                              "type": "string",
+                              "example": "Bogotá"
+                            },
+                            "departamento": {
+                              "type": "string",
+                              "example": "Cundinamarca"
+                            },
+                            "codigo_postal": {
+                              "type": "string",
+                              "example": "110111"
+                            }
+                          }
+                        },
+                        "historial_estados": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "estado": {
+                                "type": "string",
+                                "example": "en_espera"
+                              },
+                              "fecha_hora": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2023-04-16T10:30:00Z"
+                              },
+                              "observaciones": {
+                                "type": "string",
+                                "example": "Orden creada y en espera de asignación"
+                              }
+                            }
+                          }
+                        },
+                        "fecha_registro": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-04-16T10:30:00Z"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No se proporcionó un token de autenticación"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Envío no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Envío no encontrado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "No implementado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Endpoint no implementado todavía"
                     }
                   }
                 }

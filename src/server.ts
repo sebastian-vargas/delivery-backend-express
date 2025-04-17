@@ -5,6 +5,7 @@ import swaggerUi from 'swagger-ui-express';
 
 import { config } from './config';
 import { setupRoutes } from './frameworks/web/routes';
+import { mapErrorToHttpResponse } from './frameworks/web/utils/error-mapper';
 
 const app = express();
 
@@ -23,10 +24,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
-  res.status(500).json({
-    status: 'error',
-    message: 'Ocurrió un error en el servidor'
-  });
+  
+  const { statusCode, body } = mapErrorToHttpResponse(err);
+  
+  res.status(statusCode).json(body);
 });
 
 const PORT = config.port || 3000;

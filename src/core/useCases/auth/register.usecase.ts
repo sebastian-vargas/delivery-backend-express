@@ -2,6 +2,8 @@ import { IUsuarioRepository } from '../../repositories/usuario.repository.interf
 import { IRoleRepository } from '../../repositories/usuario.repository.interface';
 import { Usuario } from '../../entities/usuario.entity';
 import { hashPassword } from '../../../frameworks/security/password';
+import { EmailRegisteredError, CedulaRegisteredError } from '../../errors/auth-errors';
+import { DomainError } from '../../errors/domain-errors';
 
 export interface RegisterDTO {
   nombre: string;
@@ -29,19 +31,19 @@ export class RegisterUseCase {
     // Verificar si el email ya está registrado
     const existingEmail = await this.usuarioRepository.findByEmail(email);
     if (existingEmail) {
-      throw new Error('El email ya está registrado');
+      throw new EmailRegisteredError();
     }
 
     // Verificar si la cédula ya está registrada
     const existingCedula = await this.usuarioRepository.findByCedula(cedula);
     if (existingCedula) {
-      throw new Error('La cédula ya está registrada');
+      throw new CedulaRegisteredError();
     }
 
     // Obtener el rol de usuario (por defecto, rol "usuario")
     const userRole = await this.roleRepository.findByNombre('usuario');
     if (!userRole || !userRole.id) {
-      throw new Error('No se pudo encontrar el rol de usuario');
+      throw new DomainError('No se pudo encontrar el rol de usuario');
     }
 
     // Hashear la contraseña
@@ -62,7 +64,7 @@ export class RegisterUseCase {
 
     // Verificar que el usuario tenga ID
     if (!createdUser.id) {
-      throw new Error('Error al crear el usuario');
+      throw new DomainError('Error al crear el usuario');
     }
 
     return {
