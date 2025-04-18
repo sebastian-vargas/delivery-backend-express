@@ -48,4 +48,9 @@ export interface IHistorialEstadoRepository {
   findByOrdenEnvioId(ordenEnvioId: number): Promise<HistorialEstado[]>;
   create(historial: HistorialEstado): Promise<HistorialEstado>;
   findUltimoEstado(ordenEnvioId: number): Promise<HistorialEstado | null>;
+}
+
+export interface IEnvioNotificacionService {
+  notificarCambioEstado(idOrdenEnvio: number, nuevoEstado: string, detalles: any): Promise<void>;
+  getNotificacionesRecientes(ordenEnvioId: number): Promise<any[]>;
 } 

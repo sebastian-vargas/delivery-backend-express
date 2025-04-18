@@ -2,10 +2,61 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Logistics API",
-    "description": "API para el sistema de logística de envíos",
+    "description": "API para el sistema de logística de envíos. Incluye una API REST tradicional y una API de WebSockets para notificaciones en tiempo real.",
     "version": "1.0.0",
     "contact": {
       "email": "soporte@logistics.com"
+    },
+    "x-websockets-info": {
+      "description": "Este servicio utiliza WebSockets para proporcionar actualizaciones en tiempo real sobre los estados de los envíos. Para conectarse, use la biblioteca Socket.IO.",
+      "connection": "ws://localhost:3000",
+      "events": [
+        {
+          "name": "connection",
+          "description": "Se emite cuando un cliente se conecta al servidor WebSocket"
+        },
+        {
+          "name": "disconnect", 
+          "description": "Se emite cuando un cliente se desconecta del servidor WebSocket"
+        },
+        {
+          "name": "subscribe",
+          "description": "Suscribirse a una sala específica para recibir actualizaciones",
+          "parameters": [
+            {
+              "name": "roomId",
+              "type": "string",
+              "description": "ID de la sala a la que se quiere suscribir, formato: 'orden_{id}' o 'orden_{guia}'"
+            }
+          ]
+        },
+        {
+          "name": "unsubscribe",
+          "description": "Cancelar la suscripción a una sala",
+          "parameters": [
+            {
+              "name": "roomId",
+              "type": "string",
+              "description": "ID de la sala de la que se quiere cancelar la suscripción"
+            }
+          ]
+        },
+        {
+          "name": "cambio_estado",
+          "description": "Evento que se recibe cuando cambia el estado de una orden",
+          "payload": {
+            "idOrdenEnvio": "number - ID de la orden",
+            "estado": "string - Nuevo estado",
+            "fecha": "Date - Fecha de la actualización",
+            "detalles": {
+              "historialId": "number - ID del registro de historial",
+              "observaciones": "string - Observaciones del cambio",
+              "fecha": "Date - Fecha detallada",
+              "guia": "string - Número de guía de la orden"
+            }
+          }
+        }
+      ]
     }
   },
   "servers": [
@@ -26,6 +77,10 @@
     {
       "name": "asignar",
       "description": "Operaciones relacionadas con asignación de envíos a una ruta y transportista"
+    },
+    {
+      "name": "websockets",
+      "description": "Información sobre la integración de WebSockets para notificaciones en tiempo real"
     }
   ],
   "paths": {
@@ -1202,7 +1257,7 @@
         }
       }
     },
-    "/asignar": {
+    "/envios/asignar": {
       "post": {
         "tags": ["asignar"],
         "summary": "Crear una nueva asignacion de envío",
@@ -1342,6 +1397,267 @@
           }
         }
       }
+    },
+    "/envios/{id}/estado": {
+      "put": {
+        "tags": ["envios"],
+        "summary": "Actualizar el estado de una orden de envío",
+        "description": "Actualiza el estado de una orden de envío y notifica en tiempo real a través de WebSockets. Los clientes conectados a la sala 'orden_{id}' recibirán una notificación inmediata con los detalles del cambio de estado. Para más información sobre la integración con WebSockets, consulte la documentación de la API de WebSockets.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la orden de envío"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nuevoEstado"],
+                "properties": {
+                  "nuevoEstado": {
+                    "type": "string",
+                    "example": "en_transito",
+                    "description": "Nuevo estado de la orden. Debe ser uno de los estados válidos: 'en_espera', 'en_transito', 'entregado'"
+                  },
+                  "observaciones": {
+                    "type": "string",
+                    "example": "El paquete ha sido recogido por el transportista",
+                    "description": "Observaciones adicionales sobre el cambio de estado"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado actualizado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "guia": {
+                          "type": "string",
+                          "example": "COO12345678"
+                        },
+                        "estado_actual": {
+                          "type": "string",
+                          "example": "en_transito"
+                        },
+                        "observaciones": {
+                          "type": "string",
+                          "example": "El paquete ha sido recogido por el transportista"
+                        },
+                        "fecha_actualizacion": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-06-19T15:30:00Z"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No tiene permisos para actualizar el estado de órdenes"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Orden no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No se encontró la orden de envío con ID 1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envios/{id}/historial-reciente": {
+      "get": {
+        "tags": ["envios"],
+        "summary": "Obtener historial reciente de cambios",
+        "description": "Recupera el historial reciente de cambios de estado desde la caché de Redis",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la orden de envío",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial reciente de cambios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "orden_id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "guia": {
+                          "type": "string",
+                          "example": "COO12345678"
+                        },
+                        "historial_reciente": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "idOrdenEnvio": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "estado": {
+                                "type": "string",
+                                "example": "en_transito"
+                              },
+                              "fecha": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2023-06-19T15:30:00Z"
+                              },
+                              "detalles": {
+                                "type": "object",
+                                "properties": {
+                                  "historialId": {
+                                    "type": "integer",
+                                    "example": 123
+                                  },
+                                  "observaciones": {
+                                    "type": "string",
+                                    "example": "El paquete ha sido recogido por el transportista"
+                                  },
+                                  "guia": {
+                                    "type": "string",
+                                    "example": "COO12345678"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Orden no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/websockets": {
+      "get": {
+        "tags": ["websockets"],
+        "summary": "Información sobre la API de WebSockets",
+        "description": "Proporciona información detallada sobre cómo integrar con la API de WebSockets para recibir notificaciones en tiempo real sobre cambios de estado en las órdenes de envío.",
+        "responses": {
+          "200": {
+            "description": "Información de la API de WebSockets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebSocketIntegration"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1350,6 +1666,90 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "example": "Mensaje de error"
+          }
+        }
+      },
+      "WebSocketIntegration": {
+        "type": "object",
+        "description": "Información sobre la integración con WebSockets",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Descripción de la funcionalidad WebSocket",
+            "example": "El sistema utiliza WebSockets para proporcionar actualizaciones en tiempo real sobre los cambios de estado de las órdenes de envío."
+          },
+          "connection": {
+            "type": "string",
+            "description": "URL de conexión al servidor WebSocket",
+            "example": "ws://localhost:3000"
+          },
+          "clientLibrary": {
+            "type": "string",
+            "description": "Biblioteca recomendada para el cliente",
+            "example": "Socket.IO (https://socket.io/)"
+          },
+          "usage": {
+            "type": "object",
+            "description": "Instrucciones de uso básicas",
+            "properties": {
+              "connection": {
+                "type": "string",
+                "example": "const socket = io('http://localhost:3000');"
+              },
+              "subscription": {
+                "type": "string",
+                "example": "socket.emit('subscribe', 'orden_123');"
+              },
+              "listening": {
+                "type": "string",
+                "example": "socket.on('cambio_estado', (data) => { console.log('Actualización:', data); });"
+              }
+            }
+          },
+          "events": {
+            "type": "array",
+            "description": "Eventos disponibles en la API",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "cambio_estado"
+                },
+                "description": {
+                  "type": "string",
+                  "example": "Se emite cuando cambia el estado de una orden de envío"
+                },
+                "payload": {
+                  "type": "object",
+                  "example": {
+                    "idOrdenEnvio": 123,
+                    "estado": "en_transito",
+                    "fecha": "2023-06-19T15:30:00Z",
+                    "detalles": {
+                      "historialId": 456,
+                      "observaciones": "El paquete ha sido recogido por el transportista",
+                      "guia": "COO12345678"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

@@ -1,23 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
 import { CrearOrdenEnvioUseCase } from '../../core/useCases/envios/crearOrden.usecase';
 import { ValidarDireccionUseCase } from '../../core/useCases/envios/validarDireccion.usecase';
+import { ActualizarEstadoOrdenUseCase } from '../../core/useCases/envios/actualizarEstadoOrden.usecase';
 import { UnauthorizedError, BadRequestError, NotFoundError } from '../../frameworks/web/errors/http-errors';
 import { ParametroRequeridoError } from '../../core/errors/domain-errors';
 import { 
   IOrdenEnvioRepository, 
   IPaqueteRepository,
   IDireccionDestinoRepository,
-  IHistorialEstadoRepository 
+  IHistorialEstadoRepository,
+  IEnvioNotificacionService 
 } from '../../core/repositories/envio.repository.interface';
 
 export class EnvioController {
   constructor(
     private crearOrdenEnvioUseCase: CrearOrdenEnvioUseCase,
     private validarDireccionUseCase: ValidarDireccionUseCase,
+    private actualizarEstadoOrdenUseCase: ActualizarEstadoOrdenUseCase,
     private ordenEnvioRepository: IOrdenEnvioRepository,
     private paqueteRepository: IPaqueteRepository,
     private direccionDestinoRepository: IDireccionDestinoRepository,
-    private historialEstadoRepository: IHistorialEstadoRepository
+    private historialEstadoRepository: IHistorialEstadoRepository,
+    private envioNotificacionService: IEnvioNotificacionService
   ) {}
 
   async crearOrden(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -213,6 +217,92 @@ export class EnvioController {
       res.status(200).json({
         status: 'success',
         data: ordenes
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async actualizarEstadoOrden(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Verificar que el usuario esté autenticado
+      if (!req.user || !req.user.userId) {
+        throw new UnauthorizedError('Debe estar autenticado para actualizar órdenes de envío');
+      }
+      
+      // La validación de permisos se realiza en la ruta con middleware
+      
+      const { id } = req.params;
+      const { nuevoEstado, observaciones } = req.body;
+      
+      if (!id) {
+        throw new ParametroRequeridoError('id');
+      }
+      
+      if (!nuevoEstado) {
+        throw new ParametroRequeridoError('nuevoEstado');
+      }
+      
+      const idOrdenEnvio = parseInt(id, 10);
+      if (isNaN(idOrdenEnvio)) {
+        throw new BadRequestError('El ID debe ser un número válido');
+      }
+      
+      const resultado = await this.actualizarEstadoOrdenUseCase.execute({
+        idOrdenEnvio,
+        nuevoEstado,
+        observaciones
+      });
+      
+      res.status(200).json({
+        status: 'success',
+        data: resultado
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async obtenerHistorialCambiosRecientes(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Verificar que el usuario esté autenticado
+      if (!req.user || !req.user.userId) {
+        throw new UnauthorizedError('Debe estar autenticado para ver el historial de cambios');
+      }
+      
+      const { id } = req.params;
+      
+      if (!id) {
+        throw new ParametroRequeridoError('id');
+      }
+      
+      const ordenId = parseInt(id, 10);
+      if (isNaN(ordenId)) {
+        throw new BadRequestError('El ID debe ser un número válido');
+      }
+      
+      // Verificar que la orden existe
+      const orden = await this.ordenEnvioRepository.findById(ordenId);
+      if (!orden) {
+        throw new NotFoundError(`No se encontró la orden de envío con ID ${id}`);
+      }
+      
+      // Verificar que la orden pertenezca al usuario autenticado o que sea un admin/transportista
+      if (orden.id_usuario !== req.user.userId && req.user.role !== 'admin' && req.user.role !== 'transportista') {
+        throw new UnauthorizedError('No tiene permisos para ver esta orden de envío');
+      }
+      
+      // Obtener notificaciones recientes de Redis
+      const notificacionesRecientes = await this.envioNotificacionService.getNotificacionesRecientes(ordenId);
+      
+      // Responder con las notificaciones
+      res.status(200).json({
+        status: 'success',
+        data: {
+          orden_id: ordenId,
+          guia: orden.guia,
+          historial_reciente: notificacionesRecientes
+        }
       });
     } catch (error) {
       next(error);

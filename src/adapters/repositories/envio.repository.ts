@@ -13,6 +13,7 @@ import {
   HistorialEstado
 } from '../../core/entities/envio.entity';
 import { query } from '../../frameworks/database/mysql.connection';
+import historialCacheService from '../../frameworks/services/historial-cache.service';
 
 export class OrdenEnvioRepository implements IOrdenEnvioRepository {
   async findById(id: number): Promise<OrdenEnvio | null> {
@@ -481,6 +482,8 @@ export class EstadoEnvioRepository implements IEstadoEnvioRepository {
 }
 
 export class HistorialEstadoRepository implements IHistorialEstadoRepository {
+  private readonly cacheService = historialCacheService;
+
   async findById(id: number): Promise<HistorialEstado | null> {
     try {
       const historiales = await query<HistorialEstado[]>(
@@ -497,6 +500,17 @@ export class HistorialEstadoRepository implements IHistorialEstadoRepository {
   
   async findByOrdenEnvioId(ordenEnvioId: number): Promise<HistorialEstado[]> {
     try {
+      // Intentar obtener de la caché primero
+      const cachedHistorial = await this.cacheService.getHistorialEventos(ordenEnvioId);
+      
+      // Si hay datos en caché y contienen al menos un evento, devolverlos
+      if (cachedHistorial && cachedHistorial.length > 0) {
+        console.log(`Usando caché para historial de orden ${ordenEnvioId}`);
+        return cachedHistorial;
+      }
+      
+      // Si no hay caché, consultar la base de datos
+      console.log(`Consultando BD para historial de orden ${ordenEnvioId}`);
       const historiales = await query<HistorialEstado[]>(
         'SELECT h.*, e.nombre_estado FROM historial_estados h ' +
         'JOIN estados_envio e ON h.id_estado_envio = e.id ' +
@@ -504,6 +518,13 @@ export class HistorialEstadoRepository implements IHistorialEstadoRepository {
         'ORDER BY h.fecha_hora DESC',
         [ordenEnvioId]
       );
+      
+      // Almacenar en caché los resultados si hay datos
+      if (historiales.length > 0) {
+        // Guardamos en caché de forma asíncrona, no esperamos a que termine
+        this.cacheService.saveHistorialEvento(historiales[0])
+          .catch((err: Error) => console.error('Error al guardar historial en caché:', err));
+      }
       
       return historiales;
     } catch (error) {
@@ -519,7 +540,26 @@ export class HistorialEstadoRepository implements IHistorialEstadoRepository {
         [historial.id_orden_envio, historial.id_estado_envio, historial.fecha_hora, historial.observaciones]
       );
       
-      return { ...historial, id: result.insertId };
+      const createdHistorial = { ...historial, id: result.insertId };
+      
+      // Obtener el nombre del estado para guardarlo en caché
+      const estado = await query<{nombre_estado: string}[]>(
+        'SELECT nombre_estado FROM estados_envio WHERE id = ?',
+        [historial.id_estado_envio]
+      );
+      
+      if (estado.length > 0) {
+        const historialConEstado = { 
+          ...createdHistorial, 
+          nombre_estado: estado[0].nombre_estado 
+        };
+        
+        // Guardar en caché de forma asíncrona
+        this.cacheService.saveHistorialEvento(historialConEstado)
+          .catch((err: Error) => console.error('Error al guardar historial en caché:', err));
+      }
+      
+      return createdHistorial;
     } catch (error) {
       console.error('Error en create de HistorialEstadoRepository:', error);
       throw error;
@@ -528,6 +568,17 @@ export class HistorialEstadoRepository implements IHistorialEstadoRepository {
   
   async findUltimoEstado(ordenEnvioId: number): Promise<HistorialEstado | null> {
     try {
+      // Intentar obtener de la caché primero
+      const cachedEvento = await this.cacheService.getUltimoEvento(ordenEnvioId);
+      
+      // Si hay datos en caché, devolverlos
+      if (cachedEvento) {
+        console.log(`Usando caché para último estado de orden ${ordenEnvioId}`);
+        return cachedEvento;
+      }
+      
+      // Si no hay caché, consultar la base de datos
+      console.log(`Consultando BD para último estado de orden ${ordenEnvioId}`);
       const historiales = await query<HistorialEstado[]>(
         'SELECT h.*, e.nombre_estado FROM historial_estados h ' +
         'JOIN estados_envio e ON h.id_estado_envio = e.id ' +
@@ -536,6 +587,12 @@ export class HistorialEstadoRepository implements IHistorialEstadoRepository {
         'LIMIT 1',
         [ordenEnvioId]
       );
+      
+      // Almacenar en caché si hay resultados
+      if (historiales.length > 0) {
+        this.cacheService.saveHistorialEvento(historiales[0])
+          .catch((err: Error) => console.error('Error al guardar último estado en caché:', err));
+      }
       
       return historiales.length > 0 ? historiales[0] : null;
     } catch (error) {

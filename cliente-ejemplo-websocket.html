@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Envíos en Tiempo Real</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        #statusContainer {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        #historyContainer {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #fff;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #4CAF50;
+            background-color: #f1f1f1;
+        }
+        .connect-btn {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group input {
+            padding: 8px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Seguimiento de Envíos en Tiempo Real</h1>
+        
+        <div class="input-group">
+            <label for="ordenId">ID o Guía de la Orden:</label>
+            <input type="text" id="ordenId" placeholder="Ej: COO12345678">
+            <button id="connectBtn" class="connect-btn">Conectar</button>
+        </div>
+        
+        <div id="statusContainer">
+            <h2>Estado Actual</h2>
+            <div id="currentStatus">No conectado a ninguna orden</div>
+        </div>
+        
+        <div id="historyContainer">
+            <h2>Historial de Actualizaciones</h2>
+            <div id="statusHistory"></div>
+        </div>
+    </div>
+
+    <!-- Importar socket.io client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusContainer = document.getElementById('currentStatus');
+            const historyContainer = document.getElementById('statusHistory');
+            const connectBtn = document.getElementById('connectBtn');
+            const ordenIdInput = document.getElementById('ordenId');
+            
+            let socket = null;
+            let currentRoom = null;
+            
+            connectBtn.addEventListener('click', function() {
+                const ordenId = ordenIdInput.value.trim();
+                
+                if (!ordenId) {
+                    alert('Por favor ingrese un ID o Guía de orden válido');
+                    return;
+                }
+                
+                // Desconectar de la sala anterior si existe
+                if (socket && currentRoom) {
+                    socket.emit('unsubscribe', currentRoom);
+                    addHistoryItem('Desconectado de la sala: ' + currentRoom);
+                }
+                
+                // Conectar al socket si aún no lo hemos hecho
+                if (!socket) {
+                    // Cambiar la URL al dominio de tu servidor
+                    socket = io('http://localhost:3000');
+                    
+                    socket.on('connect', function() {
+                        addHistoryItem('Conectado al servidor WebSocket');
+                        
+                        // Configurar evento para cambios de estado
+                        socket.on('cambio_estado', function(data) {
+                            statusContainer.innerHTML = `
+                                <strong>Orden:</strong> ${data.idOrdenEnvio} ${data.detalles.guia ? `(${data.detalles.guia})` : ''}<br>
+                                <strong>Estado:</strong> ${data.estado}<br>
+                                <strong>Fecha:</strong> ${new Date(data.fecha).toLocaleString()}<br>
+                                <strong>Observaciones:</strong> ${data.detalles.observaciones || 'No hay observaciones'}
+                            `;
+                            
+                            addHistoryItem(`Actualización de estado: <strong>${data.estado}</strong><br>${data.detalles.observaciones || 'Sin observaciones'}`);
+                        });
+                    });
+                    
+                    socket.on('disconnect', function() {
+                        addHistoryItem('Desconectado del servidor WebSocket');
+                    });
+                    
+                    socket.on('error', function(error) {
+                        addHistoryItem('Error: ' + error);
+                    });
+                }
+                
+                // Subscribirse a la sala específica para la orden
+                currentRoom = `orden_${ordenId}`;
+                socket.emit('subscribe', currentRoom);
+                addHistoryItem('Conectado al seguimiento de la orden: ' + ordenId);
+                statusContainer.innerHTML = `Esperando actualizaciones para la orden: ${ordenId}`;
+            });
+            
+            function addHistoryItem(message) {
+                const item = document.createElement('div');
+                item.className = 'status-item';
+                
+                const timestamp = document.createElement('div');
+                timestamp.className = 'timestamp';
+                timestamp.textContent = new Date().toLocaleString();
+                
+                const content = document.createElement('div');
+                content.innerHTML = message;
+                
+                item.appendChild(timestamp);
+                item.appendChild(content);
+                
+                historyContainer.querySelector('#statusHistory').prepend(item);
+            }
+        });
+    </script>
+</body>
+</html> 
