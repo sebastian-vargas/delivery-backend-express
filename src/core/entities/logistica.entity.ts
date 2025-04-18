@@ -12,7 +12,7 @@ export interface Vehiculo {
   id?: number;
   tipo: 'moto' | 'minivan' | 'camion';
   placa: string;
-  capacidad_maxima?: number;
+  capacidad_maxima: number;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -21,6 +21,7 @@ export interface Transportista {
   id?: number;
   id_vehiculo: number;
   id_usuario: number;
+  total_carga_actual:number;
   disponible: boolean;
   fecha_asignacion?: Date;
 }

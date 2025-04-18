@@ -190,4 +190,32 @@ export class EnvioController {
       next(error);
     }
   }
+
+  async obtenerOrdenesPorEstado(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Verificar que el usuario esté autenticado
+      if (!req.user || !req.user.userId) {
+        throw new UnauthorizedError('Debe estar autenticado para ver detalles de envío');
+      }
+      
+      const { estado } = req.params;
+      
+      if (!estado) {
+        throw new ParametroRequeridoError('estado');
+      }
+      
+      const ordenes = await this.ordenEnvioRepository.findByEstado(estado);
+      
+      if (!ordenes) {
+        throw new NotFoundError(`No se encontraron ordenes con el estado ${estado}`);
+      }
+      
+      res.status(200).json({
+        status: 'success',
+        data: ordenes
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 } 

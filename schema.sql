@@ -124,6 +124,7 @@ CREATE TABLE transportistas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_vehiculo INT NOT NULL,
     id_usuario INT NOT NULL,
+    total_carga_actual DECIMAL(10,2) DEFAULT 0;
     disponible BOOLEAN DEFAULT TRUE,
     fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_vehiculo) REFERENCES vehiculos(id),

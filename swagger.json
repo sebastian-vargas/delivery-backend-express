@@ -22,6 +22,10 @@
     {
       "name": "envios",
       "description": "Operaciones relacionadas con envíos"
+    },
+    {
+      "name": "asignar",
+      "description": "Operaciones relacionadas con asignación de envíos a una ruta y transportista"
     }
   ],
   "paths": {
@@ -430,11 +434,7 @@
                             }
                           }
                         },
-                        "fecha_registro": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-04-16T10:30:00Z"
-                        }
+                        "fecha_registro": "2023-04-16T10:30:00Z"
                       }
                     }
                   }
@@ -653,11 +653,6 @@
                           "estado_actual": {
                             "type": "string",
                             "example": "en_espera"
-                          },
-                          "fecha_registro": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2023-04-16T10:30:00Z"
                           }
                         }
                       }
@@ -827,7 +822,15 @@
                                 "type": "integer",
                                 "example": 1
                               },
-                              "estado": {
+                              "id_orden_envio": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "id_estado_envio": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "nombre_estado": {
                                 "type": "string",
                                 "example": "en_espera"
                               },
@@ -842,11 +845,6 @@
                               }
                             }
                           }
-                        },
-                        "fecha_registro": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-04-16T10:30:00Z"
                         }
                       }
                     }
@@ -1054,11 +1052,6 @@
                               }
                             }
                           }
-                        },
-                        "fecha_registro": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-04-16T10:30:00Z"
                         }
                       }
                     }
@@ -1101,6 +1094,246 @@
                     "message": {
                       "type": "string",
                       "example": "Envío no encontrado"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envios/estado/{estado}": {
+      "get": {
+        "tags": ["envios"],
+        "summary": "Obtener ordenes por estado",
+        "description": "Obtiene las ordenes por estado siendo admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "path",
+            "required": true,
+            "description": "estado de la orden de envío",
+            "schema": {
+              "type": "string",
+              "example": "en_espera"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "guia": {
+                      "type": "string",
+                      "example": "COO8JX3K2WQ"
+                    },
+                    "id_usuario": {
+                      "type": "integer",
+                      "example": 42
+                    },
+                    "estado_actual": {
+                      "type": "string",
+                      "example": "en_espera"
+                    },
+                    "fecha_entrega": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2023-04-17T15:45:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No se proporcionó un token de autenticación"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Orden no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Orden no encontrada"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/asignar": {
+      "post": {
+        "tags": ["asignar"],
+        "summary": "Crear una nueva asignacion de envío",
+        "description": "Crear una nueva asignacion de envío con información del transportista, ruta y orden de envío",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id_orden_envio", "id_ruta", "id_transportista"],
+                "properties": {
+                  "id_orden_envio": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "id_ruta": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "id_transportista": {
+                    "type": "number",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asignación de envío creada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "id_orden_envio": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "id_ruta": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "id_transportista": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "fecha_asignacion": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2023-04-16T10:30:00Z"
+                            }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o dirección inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "El peso debe ser mayor a 0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Debe estar autenticado para crear órdenes de envío"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al crear la orden de envío"
                     }
                   }
                 }

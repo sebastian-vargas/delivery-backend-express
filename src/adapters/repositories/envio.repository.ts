@@ -58,6 +58,20 @@ export class OrdenEnvioRepository implements IOrdenEnvioRepository {
       throw error;
     }
   }
+
+  async findByEstado(estado: string): Promise<OrdenEnvio[] | null> {
+    try {
+      const ordenes = await query<OrdenEnvio[]>(
+        'SELECT * FROM ordenes_envio WHERE estado_actual = ?',
+        [estado]
+      );
+      
+      return ordenes.length > 0 ? ordenes : null;
+    } catch (error) {
+      console.error('Error en findByEstado de OrdenEnvioRepository:', error);
+      throw error;
+    }
+  }
   
   async create(ordenEnvio: OrdenEnvio): Promise<OrdenEnvio> {
     try {

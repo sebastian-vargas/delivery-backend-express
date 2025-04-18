@@ -7,7 +7,7 @@ import { OrdenEnvioRepository, PaqueteRepository, DireccionDestinoRepository, Es
 import { UsuarioRepository } from '../../../adapters/repositories/usuario.repository';
 import { DireccionService } from '../../../frameworks/services/direccion.service';
 import { NotificacionService } from '../../../frameworks/services/notificacion.service';
-import { authenticate } from '../middlewares/auth.middleware';
+import { authenticate, authorize } from '../middlewares/auth.middleware';
 
 // Crear instancias de servicios
 const direccionService = new DireccionService();
@@ -65,5 +65,7 @@ router.get('/id/:id', authenticate, (req, res, next) => envioController.obtenerE
 
 // Ruta para obtener un envío específico por guía (requiere autenticación)
 router.get('/guia/:guia', authenticate, (req, res, next) => envioController.obtenerEnvioPorGuia(req, res, next));
+
+router.get('/estado/:estado', authenticate, authorize(['admin']), (req, res, next) => envioController.obtenerOrdenesPorEstado(req, res, next));
 
 export default router;
