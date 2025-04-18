@@ -363,6 +363,10 @@
                           "type": "string",
                           "example": "en_espera"
                         },
+                        "guia": {
+                          "type": "string",
+                          "example": "COO8JX3K2WQ"
+                        },
                         "paquete": {
                           "type": "object",
                           "properties": {
@@ -706,7 +710,7 @@
         }
       }
     },
-    "/envios/{id}": {
+    "/envios/id/{id}": {
       "get": {
         "tags": ["envios"],
         "summary": "Obtener un envío por ID",
@@ -905,6 +909,198 @@
                     "message": {
                       "type": "string",
                       "example": "Endpoint no implementado todavía"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/envios/guia/{guia}": {
+      "get": {
+        "tags": ["envios"],
+        "summary": "Obtener un envío por guia",
+        "description": "Obtiene los detalles de un envío específico",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "guia",
+            "in": "path",
+            "required": true,
+            "description": "guia de la orden de envío",
+            "schema": {
+              "type": "string",
+              "example": "COO8JX3K2WQ"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del envío",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "estado_actual": {
+                          "type": "string",
+                          "example": "en_espera"
+                        },
+                        "guia": {
+                          "type": "string",
+                          "example": "COO8JX3K2WQ"
+                        },
+                        "paquete": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "tipo_envio": {
+                              "type": "string",
+                              "example": "paqueteria"
+                            },
+                            "peso": {
+                              "type": "number",
+                              "example": 5.2
+                            },
+                            "dimensiones": {
+                              "type": "object",
+                              "properties": {
+                                "largo": {
+                                  "type": "number",
+                                  "example": 30
+                                },
+                                "ancho": {
+                                  "type": "number",
+                                  "example": 20
+                                },
+                                "alto": {
+                                  "type": "number",
+                                  "example": 15
+                                }
+                              }
+                            },
+                            "tipo_producto": {
+                              "type": "string",
+                              "example": "Electrónica"
+                            }
+                          }
+                        },
+                        "direccion": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "calle": {
+                              "type": "string",
+                              "example": "Calle 123 #45-67"
+                            },
+                            "ciudad": {
+                              "type": "string",
+                              "example": "Bogotá"
+                            },
+                            "departamento": {
+                              "type": "string",
+                              "example": "Cundinamarca"
+                            },
+                            "codigo_postal": {
+                              "type": "string",
+                              "example": "110111"
+                            }
+                          }
+                        },
+                        "historial_estados": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "estado": {
+                                "type": "string",
+                                "example": "en_espera"
+                              },
+                              "fecha_hora": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2023-04-16T10:30:00Z"
+                              },
+                              "observaciones": {
+                                "type": "string",
+                                "example": "Orden creada y en espera de asignación"
+                              }
+                            }
+                          }
+                        },
+                        "fecha_registro": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-04-16T10:30:00Z"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No se proporcionó un token de autenticación"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Envío no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Envío no encontrado"
                     }
                   }
                 }

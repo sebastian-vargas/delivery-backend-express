@@ -3,11 +3,21 @@ import { CrearOrdenEnvioUseCase } from '../../core/useCases/envios/crearOrden.us
 import { ValidarDireccionUseCase } from '../../core/useCases/envios/validarDireccion.usecase';
 import { UnauthorizedError, BadRequestError, NotFoundError } from '../../frameworks/web/errors/http-errors';
 import { ParametroRequeridoError } from '../../core/errors/domain-errors';
+import { 
+  IOrdenEnvioRepository, 
+  IPaqueteRepository,
+  IDireccionDestinoRepository,
+  IHistorialEstadoRepository 
+} from '../../core/repositories/envio.repository.interface';
 
 export class EnvioController {
   constructor(
     private crearOrdenEnvioUseCase: CrearOrdenEnvioUseCase,
-    private validarDireccionUseCase: ValidarDireccionUseCase
+    private validarDireccionUseCase: ValidarDireccionUseCase,
+    private ordenEnvioRepository: IOrdenEnvioRepository,
+    private paqueteRepository: IPaqueteRepository,
+    private direccionDestinoRepository: IDireccionDestinoRepository,
+    private historialEstadoRepository: IHistorialEstadoRepository
   ) {}
 
   async crearOrden(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -103,9 +113,79 @@ export class EnvioController {
         throw new ParametroRequeridoError('id');
       }
       
-      // Esta función se implementará más adelante para obtener un envío específico
-      // Por ahora lanzamos un error NotFoundError indicando que no está implementado
-      throw new NotFoundError('Endpoint no implementado todavía');
+      const ordenId = parseInt(id, 10);
+      if (isNaN(ordenId)) {
+        throw new BadRequestError('El ID debe ser un número válido');
+      }
+      
+      const orden = await this.ordenEnvioRepository.findById(ordenId);
+      
+      if (!orden) {
+        throw new NotFoundError(`No se encontró la orden de envío con ID ${id}`);
+      }
+      
+      // Verificar que la orden pertenezca al usuario autenticado
+      if (orden.id_usuario !== req.user.userId) {
+        throw new UnauthorizedError('No tiene permisos para ver esta orden de envío');
+      }
+      
+      // Obtener paquete, dirección y historial
+      const paquete = await this.paqueteRepository.findByOrdenEnvioId(orden.id!);
+      const direccion = await this.direccionDestinoRepository.findByOrdenEnvioId(orden.id!);
+      const historial = await this.historialEstadoRepository.findByOrdenEnvioId(orden.id!);
+      
+      res.status(200).json({
+        status: 'success',
+        data: {
+          orden,
+          paquete,
+          direccion,
+          historial
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  async obtenerEnvioPorGuia(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Verificar que el usuario esté autenticado
+      if (!req.user || !req.user.userId) {
+        throw new UnauthorizedError('Debe estar autenticado para ver detalles de envío');
+      }
+      
+      const { guia } = req.params;
+      
+      if (!guia) {
+        throw new ParametroRequeridoError('guia');
+      }
+      
+      const orden = await this.ordenEnvioRepository.findByGuia(guia);
+      
+      if (!orden) {
+        throw new NotFoundError(`No se encontró la orden de envío con guía ${guia}`);
+      }
+      
+      // Verificar que la orden pertenezca al usuario autenticado
+      if (orden.id_usuario !== req.user.userId) {
+        throw new UnauthorizedError('No tiene permisos para ver esta orden de envío');
+      }
+      
+      // Obtener paquete, dirección y historial
+      const paquete = await this.paqueteRepository.findByOrdenEnvioId(orden.id!);
+      const direccion = await this.direccionDestinoRepository.findByOrdenEnvioId(orden.id!);
+      const historial = await this.historialEstadoRepository.findByOrdenEnvioId(orden.id!);
+      
+      res.status(200).json({
+        status: 'success',
+        data: {
+          orden,
+          paquete,
+          direccion,
+          historial
+        }
+      });
     } catch (error) {
       next(error);
     }

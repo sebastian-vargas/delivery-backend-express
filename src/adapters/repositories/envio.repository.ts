@@ -45,18 +45,49 @@ export class OrdenEnvioRepository implements IOrdenEnvioRepository {
     }
   }
   
-  async create(ordenEnvio: OrdenEnvio): Promise<OrdenEnvio> {
+  async findByGuia(guia: string): Promise<OrdenEnvio | null> {
     try {
-      const result = await query<{ insertId: number }>(
-        'INSERT INTO ordenes_envio (id_usuario, estado_actual) VALUES (?, ?)',
-        [ordenEnvio.id_usuario, ordenEnvio.estado_actual]
+      const ordenes = await query<OrdenEnvio[]>(
+        'SELECT * FROM ordenes_envio WHERE guia = ?',
+        [guia]
       );
       
-      return { ...ordenEnvio, id: result.insertId };
+      return ordenes.length > 0 ? ordenes[0] : null;
+    } catch (error) {
+      console.error('Error en findByGuia de OrdenEnvioRepository:', error);
+      throw error;
+    }
+  }
+  
+  async create(ordenEnvio: OrdenEnvio): Promise<OrdenEnvio> {
+    try {
+      // Generar una guía alfanumérica única de 11 caracteres
+      const guia = this.generarGuiaUnica();
+      
+      const result = await query<{ insertId: number }>(
+        'INSERT INTO ordenes_envio (guia, id_usuario, estado_actual) VALUES (?, ?, ?)',
+        [guia, ordenEnvio.id_usuario, ordenEnvio.estado_actual]
+      );
+      
+      return { ...ordenEnvio, id: result.insertId, guia };
     } catch (error) {
       console.error('Error en create de OrdenEnvioRepository:', error);
       throw error;
     }
+  }
+  
+  // Método privado para generar una guía alfanumérica única
+  private generarGuiaUnica(): string {
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const prefijo = 'COO'; // Prefijo para Coordinadora
+    let resultado = prefijo;
+    
+    // Generar 8 caracteres aleatorios (prefijo de 3 + 8 = 11 caracteres en total)
+    for (let i = 0; i < 8; i++) {
+      resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    
+    return resultado;
   }
   
   async update(id: number, ordenEnvio: Partial<OrdenEnvio>): Promise<boolean> {

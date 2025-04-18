@@ -43,6 +43,7 @@ CREATE TABLE usuarios (
 CREATE TABLE ordenes_envio (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
+    guia VARCHAR(11) NOT NULL UNIQUE,
     estado_actual VARCHAR(50) DEFAULT 'en_espera',
     fecha_entrega TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

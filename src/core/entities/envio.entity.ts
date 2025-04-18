@@ -1,5 +1,6 @@
 export interface OrdenEnvio {
   id?: number;
+  guia?: string;
   id_usuario: number;
   estado_actual: string;
   fecha_entrega?: Date;

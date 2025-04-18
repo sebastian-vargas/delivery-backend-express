@@ -40,7 +40,11 @@ const crearOrdenEnvioUseCase = new CrearOrdenEnvioUseCase(
 // Crear instancia del controlador
 const envioController = new EnvioController(
   crearOrdenEnvioUseCase,
-  validarDireccionUseCase
+  validarDireccionUseCase,
+  ordenEnvioRepository,
+  paqueteRepository,
+  direccionDestinoRepository,
+  historialEstadoRepository
 );
 
 // Crear router
@@ -56,7 +60,10 @@ router.post('/validar-direccion', (req, res, next) => envioController.validarDir
 // Ruta para obtener los envíos de un usuario (requiere autenticación)
 router.get('/mis-envios', authenticate, (req, res, next) => envioController.listarEnviosUsuario(req, res, next));
 
-// Ruta para obtener un envío específico (requiere autenticación)
-router.get('/:id', authenticate, (req, res, next) => envioController.obtenerEnvioPorId(req, res, next));
+// Ruta para obtener un envío específico por ID (requiere autenticación)
+router.get('/id/:id', authenticate, (req, res, next) => envioController.obtenerEnvioPorId(req, res, next));
+
+// Ruta para obtener un envío específico por guía (requiere autenticación)
+router.get('/guia/:guia', authenticate, (req, res, next) => envioController.obtenerEnvioPorGuia(req, res, next));
 
 export default router;

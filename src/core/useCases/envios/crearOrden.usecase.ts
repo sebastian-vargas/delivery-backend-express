@@ -36,6 +36,7 @@ export interface CrearOrdenEnvioDTO {
 
 export interface CrearOrdenEnvioResponseDTO {
   id: number;
+  guia: string;
   estado_actual: string;
   paquete: {
     id: number;
@@ -166,10 +167,11 @@ export class CrearOrdenEnvioUseCase {
     
     // 9. Retornar la información de la orden creada
     return {
-      id: ordenCreada.id,
+      id: ordenCreada.id!,
+      guia: ordenCreada.guia!,
       estado_actual: ordenCreada.estado_actual,
       paquete: {
-        id: paqueteCreado.id,
+        id: paqueteCreado.id!,
         tipo_envio: paqueteCreado.tipo_envio,
         peso: paqueteCreado.peso,
         dimensiones: {
@@ -180,7 +182,7 @@ export class CrearOrdenEnvioUseCase {
         tipo_producto: paqueteCreado.tipo_producto
       },
       direccion: {
-        id: direccionCreada.id,
+        id: direccionCreada.id!,
         calle: direccionCreada.calle,
         ciudad: direccionCreada.ciudad,
         departamento: direccionCreada.departamento,

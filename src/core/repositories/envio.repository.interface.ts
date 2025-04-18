@@ -8,6 +8,7 @@ import {
 
 export interface IOrdenEnvioRepository {
   findById(id: number): Promise<OrdenEnvio | null>;
+  findByGuia(guia: string): Promise<OrdenEnvio | null>;
   findByUsuarioId(usuarioId: number, page?: number, limit?: number): Promise<OrdenEnvio[]>;
   create(ordenEnvio: OrdenEnvio): Promise<OrdenEnvio>;
   update(id: number, ordenEnvio: Partial<OrdenEnvio>): Promise<boolean>;
