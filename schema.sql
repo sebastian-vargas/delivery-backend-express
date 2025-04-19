@@ -124,7 +124,7 @@ CREATE TABLE transportistas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_vehiculo INT NOT NULL,
     id_usuario INT NOT NULL,
-    total_carga_actual DECIMAL(10,2) DEFAULT 0;
+    total_carga_actual DECIMAL(10,2) DEFAULT 0,
     disponible BOOLEAN DEFAULT TRUE,
     fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_vehiculo) REFERENCES vehiculos(id),
@@ -142,6 +142,12 @@ CREATE TABLE asignaciones_envio (
     FOREIGN KEY (id_ruta) REFERENCES rutas(id),
     FOREIGN KEY (id_transportista) REFERENCES transportistas(id)
 );
+
+INSERT INTO transportistas (id_vehiculo, id_usuario)
+VALUES (1, 3);
+
+INSERT INTO transportistas (id_vehiculo, id_usuario)
+VALUES (2, 4);
 
 -- Insertar roles por defecto
 INSERT INTO roles (nombre) VALUES ('usuario'), ('transportista'), ('admin');

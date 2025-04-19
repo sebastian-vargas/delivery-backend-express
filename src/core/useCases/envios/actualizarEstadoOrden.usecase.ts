@@ -70,7 +70,7 @@ export class ActualizarEstadoOrdenUseCase {
       data.idOrdenEnvio,
       data.nuevoEstado,
       {
-        historialId: historial.id,
+        historial,
         observaciones: historialEstado.observaciones,
         fecha: fechaActualizacion,
         guia: orden.guia

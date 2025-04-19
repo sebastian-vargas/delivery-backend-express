@@ -1,6 +1,7 @@
-import { AsignacionEnvio, Transportista, Vehiculo } from "../../core/entities/logistica.entity";
-import { IAsignacionEnvioRepository, ITransportistaRepository, IVehiculoRepository } from "../../core/repositories/logistica.repository.interface";
+import { AsignacionEnvio, Ruta, Transportista, Vehiculo } from "../../core/entities/logistica.entity";
+import { IAsignacionEnvioRepository, IRutaRepository, ITransportistaRepository, IVehiculoRepository } from "../../core/repositories/logistica.repository.interface";
 import { query } from '../../frameworks/database/mysql.connection';
+
 export class AsignacionEnvioRepository implements IAsignacionEnvioRepository {
     async create(asignacion: AsignacionEnvio): Promise<AsignacionEnvio> {
         try {
@@ -12,6 +13,24 @@ export class AsignacionEnvioRepository implements IAsignacionEnvioRepository {
             return { ...asignacion, id: result.insertId };
         } catch (error) {
             console.error('Error en create de AsignacionEnvioRepository:', error);
+            throw error;
+        }
+    }
+}
+
+export class RutaRepository implements IRutaRepository {
+    async findAll(page: number = 1, limit: number = 10): Promise<Ruta[]> {
+        try {
+            const offset = (page - 1) * limit;
+            
+            const rutas = await query<Ruta[]>(
+                `SELECT * FROM rutas ORDER BY nombre_ruta ASC LIMIT ${parseInt(String(limit))} OFFSET ${parseInt(String(offset))}`,
+                []
+            );
+
+            return rutas;
+        } catch (error) {
+            console.error('Error en findAll de RutaRepository:', error);
             throw error;
         }
     }
@@ -36,12 +55,19 @@ export class TransportistaRepository implements ITransportistaRepository {
         try {
             const offset = (page - 1) * limit;
 
-            const ordenes = await query<Transportista[]>(
-                'SELECT * FROM transportistas ORDER BY created_at DESC LIMIT ? OFFSET ?',
-                [limit, offset]
+            const transportistas = await query<Transportista[]>(
+                `SELECT t.*, 
+                   u.nombre AS nombre_usuario, 
+                   v.tipo AS tipo_vehiculo, 
+                   v.placa AS placa_vehiculo
+                 FROM transportistas t
+                 JOIN usuarios u ON t.id_usuario = u.id
+                 JOIN vehiculos v ON t.id_vehiculo = v.id
+                 ORDER BY t.id ASC LIMIT ${parseInt(String(limit))} OFFSET ${parseInt(String(offset))}`,
+                []
             );
 
-            return ordenes;
+            return transportistas;
         } catch (error) {
             console.error('Error en findAll de TransportistaRepository:', error);
             throw error;
@@ -68,12 +94,12 @@ export class VehiculoRepository implements IVehiculoRepository {
         try {
             const offset = (page - 1) * limit;
 
-            const ordenes = await query<Vehiculo[]>(
-                'SELECT * FROM vehiculos ORDER BY created_at DESC LIMIT ? OFFSET ?',
-                [limit, offset]
+            const vehiculos = await query<Vehiculo[]>(
+                `SELECT * FROM vehiculos ORDER BY id ASC LIMIT ${parseInt(String(limit))} OFFSET ${parseInt(String(offset))}`,
+                []
             );
 
-            return ordenes;
+            return vehiculos;
         } catch (error) {
             console.error('Error en findAll de VehiculoRepository:', error);
             throw error;

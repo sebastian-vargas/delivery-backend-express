@@ -75,8 +75,8 @@
       "description": "Operaciones relacionadas con envíos"
     },
     {
-      "name": "asignar",
-      "description": "Operaciones relacionadas con asignación de envíos a una ruta y transportista"
+      "name": "logistica",
+      "description": "Operaciones relacionadas con elementos de logística (rutas, transportistas)"
     },
     {
       "name": "reportes",
@@ -1261,147 +1261,6 @@
         }
       }
     },
-    "/envios/asignar": {
-      "post": {
-        "tags": ["asignar"],
-        "summary": "Crear una nueva asignacion de envío",
-        "description": "Crear una nueva asignacion de envío con información del transportista, ruta y orden de envío",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["id_orden_envio", "id_ruta", "id_transportista"],
-                "properties": {
-                  "id_orden_envio": {
-                    "type": "number",
-                    "example": 1
-                  },
-                  "id_ruta": {
-                    "type": "number",
-                    "example": 1
-                  },
-                  "id_transportista": {
-                    "type": "number",
-                    "example": 1
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Asignación de envío creada correctamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "success"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                              "type": "integer",
-                              "example": 1
-                            },
-                            "id_orden_envio": {
-                              "type": "integer",
-                              "example": 1
-                            },
-                            "id_ruta": {
-                              "type": "integer",
-                              "example": 1
-                            },
-                            "id_transportista": {
-                              "type": "integer",
-                              "example": 1
-                            },
-                            "fecha_asignacion": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-04-16T10:30:00Z"
-                            }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Datos inválidos o dirección inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "error"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "El peso debe ser mayor a 0"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autenticado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "error"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Debe estar autenticado para crear órdenes de envío"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error del servidor",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "error"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Error al crear la orden de envío"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/envios/{id}/estado": {
       "put": {
         "tags": ["envios"],
@@ -1637,6 +1496,404 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logistica/asignar": {
+      "post": {
+        "tags": ["logistica"],
+        "summary": "Crear una nueva asignacion de envío",
+        "description": "Crear una nueva asignacion de envío con información del transportista, ruta y orden de envío",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id_orden_envio", "id_ruta", "id_transportista"],
+                "properties": {
+                  "id_orden_envio": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "id_ruta": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "id_transportista": {
+                    "type": "number",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asignación de envío creada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "id_orden_envio": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "id_ruta": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "id_transportista": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "fecha_asignacion": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2023-04-16T10:30:00Z"
+                            }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o dirección inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "El peso debe ser mayor a 0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Debe estar autenticado para crear órdenes de envío"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al crear la orden de envío"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logistica/rutas": {
+      "get": {
+        "tags": ["logistica"],
+        "summary": "Obtener todas las rutas disponibles",
+        "description": "Obtiene la lista de rutas disponibles en el sistema",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Número de página para paginación"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Cantidad de registros por página"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de rutas obtenida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "nombre_ruta": {
+                            "type": "string",
+                            "example": "Medellín - Bogotá"
+                          },
+                          "origen": {
+                            "type": "string",
+                            "example": "Medellín"
+                          },
+                          "destino": {
+                            "type": "string",
+                            "example": "Bogotá"
+                          },
+                          "distancia_km": {
+                            "type": "number",
+                            "format": "float",
+                            "example": 416.00
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No autorizado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al obtener las rutas"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logistica/transportistas": {
+      "get": {
+        "tags": ["logistica"],
+        "summary": "Obtener todos los transportistas",
+        "description": "Obtiene la lista de transportistas disponibles en el sistema",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Número de página para paginación"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Cantidad de registros por página"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de transportistas obtenida correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "id_vehiculo": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "id_usuario": {
+                            "type": "integer",
+                            "example": 3
+                          },
+                          "nombre_usuario": {
+                            "type": "string",
+                            "example": "Carlos Transportista"
+                          },
+                          "tipo_vehiculo": {
+                            "type": "string",
+                            "enum": ["moto", "minivan", "camion"],
+                            "example": "moto"
+                          },
+                          "placa_vehiculo": {
+                            "type": "string",
+                            "example": "ABC123"
+                          },
+                          "total_carga_actual": {
+                            "type": "number",
+                            "format": "float",
+                            "example": 50.5
+                          },
+                          "disponible": {
+                            "type": "boolean",
+                            "example": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No autorizado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al obtener los transportistas"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }

@@ -70,7 +70,7 @@ router.post('/validar-direccion', (req, res, next) => envioController.validarDir
 // Ruta para obtener los envíos de un usuario (requiere autenticación)
 router.get('/mis-envios', authenticate, (req, res, next) => envioController.listarEnviosUsuario(req, res, next));
 
-// Ruta para actualizar el estado de un envío (requiere autenticación)
+// Ruta para actualizar el estado de un envío (requiere autenticación) con Web Sockets
 router.put('/:id/estado', authenticate, authorize(['admin','transportista']), (req, res, next) => envioController.actualizarEstadoOrden(req, res, next));
 
 // Ruta para obtener el historial de cambios recientes desde Redis (requiere autenticación)

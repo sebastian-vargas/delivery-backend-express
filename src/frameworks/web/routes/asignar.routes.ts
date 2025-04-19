@@ -3,18 +3,26 @@ import { authenticate } from '../middlewares/auth.middleware';
 import { AsignacionEnvioRepository, TransportistaRepository, VehiculoRepository } from "../../../adapters/repositories/logistica.reposiroty";
 import { AsignarEnvioUseCase } from "../../../core/useCases/logistica/asignarEnvio.usecase";
 import { LogisticaController } from '../../../adapters/controllers/logistica.controller';
-import { OrdenEnvioRepository } from '../../../adapters/repositories/envio.repository';
+import { OrdenEnvioRepository, EstadoEnvioRepository, HistorialEstadoRepository } from '../../../adapters/repositories/envio.repository';
+import envioNotificacionService from '../../../frameworks/services/envio-notificacion.service';
 
 
 // Crear instancias de repositorios
 const asignacionEnvioRepository = new AsignacionEnvioRepository();
 const transportistaRepository = new TransportistaRepository();
 const vehiculoRepository = new VehiculoRepository();
+const ordenEnvioRepository = new OrdenEnvioRepository();
+const estadoEnvioRepository = new EstadoEnvioRepository();
+const historialEstadoRepository = new HistorialEstadoRepository();
 
 const asignarEnvioUseCase = new AsignarEnvioUseCase(
     asignacionEnvioRepository,
     transportistaRepository,
-    vehiculoRepository
+    vehiculoRepository,
+    ordenEnvioRepository,
+    estadoEnvioRepository,
+    historialEstadoRepository,
+    envioNotificacionService
 );
 
 // Crear instancia del controlador

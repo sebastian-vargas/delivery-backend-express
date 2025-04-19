@@ -1,6 +1,7 @@
 import { AsignacionEnvioRepository, TransportistaRepository, VehiculoRepository } from "../../../adapters/repositories/logistica.reposiroty";
 import { AsignacionEnvio, Transportista, Vehiculo } from "../../entities/logistica.entity";
 import { DomainError, ParametroRequeridoError } from "../../errors/domain-errors";
+import { IOrdenEnvioRepository, IEstadoEnvioRepository, IHistorialEstadoRepository, IEnvioNotificacionService } from "../../repositories/envio.repository.interface";
 
 export interface CrearAsignarEnvioDTO {
     id_orden_envio: number;
@@ -14,13 +15,18 @@ export interface CrearAsignarEnvioResponseDTO {
     id_ruta:number;
     id_transportista:number;
     fecha_asignacion?:Date;
+    estado_orden?: string;
 }
 
 export class AsignarEnvioUseCase {
     constructor(
         private asignacionEnvioRepository: AsignacionEnvioRepository,
-        private transportistaRepository:TransportistaRepository,
-        private vehiculoRepository:VehiculoRepository
+        private transportistaRepository: TransportistaRepository,
+        private vehiculoRepository: VehiculoRepository,
+        private ordenEnvioRepository: IOrdenEnvioRepository,
+        private estadoEnvioRepository: IEstadoEnvioRepository,
+        private historialEstadoRepository: IHistorialEstadoRepository,
+        private envioNotificacionService: IEnvioNotificacionService
     ) { }
 
     async execute(data: CrearAsignarEnvioDTO): Promise<CrearAsignarEnvioResponseDTO> {
@@ -49,16 +55,63 @@ export class AsignarEnvioUseCase {
             throw new DomainError('Error al crear la asignación de envío');
         }
 
-        
-        //TODO: Podría notificar al usuario cuando se genere la orden de despacho
+        // 4. Cambiar el estado de la orden de envío a "en_transito"
+        // 4.1 Verificar que la orden existe
+        const orden = await this.ordenEnvioRepository.findById(data.id_orden_envio);
+        if (!orden) {
+            throw new DomainError(`No se encontró la orden de envío con ID ${data.id_orden_envio}`);
+        }
 
-        // 9. Retornar la información de la asignacion creada
+        // 4.2 Verificar que el estado existe
+        const nuevoEstado = "en_transito";
+        const estadoEnTransito = await this.estadoEnvioRepository.findByNombre(nuevoEstado);
+        if (!estadoEnTransito || !estadoEnTransito.id) {
+            throw new DomainError(`No se encontró el estado ${nuevoEstado} en el sistema`);
+        }
+
+        // 4.3 Actualizar el estado de la orden
+        const actualizado = await this.ordenEnvioRepository.update(data.id_orden_envio, {
+            estado_actual: nuevoEstado
+        });
+
+        if (!actualizado) {
+            throw new DomainError('Error al actualizar el estado de la orden');
+        }
+
+        // 4.4 Registrar en el historial
+        const fechaActualizacion = new Date();
+        const observaciones = `Asignado al transportista ID: ${data.id_transportista} con vehículo: ${vehiculo.placa}`;
+        const historialEstado = {
+            id_orden_envio: data.id_orden_envio,
+            id_estado_envio: estadoEnTransito.id,
+            fecha_hora: fechaActualizacion,
+            observaciones
+        };
+
+        const historial = await this.historialEstadoRepository.create(historialEstado);
+
+        // 4.5 Enviar notificación a través de WebSockets
+        await this.envioNotificacionService.notificarCambioEstado(
+            data.id_orden_envio,
+            nuevoEstado,
+            {
+                historial,
+                transportistaId: data.id_transportista, //No consistentes
+                vehiculoPlaca: vehiculo.placa, //No consistentes
+                observaciones,
+                fecha: fechaActualizacion,
+                guia: orden.guia
+            }
+        );
+
+        // 5. Retornar la información de la asignacion creada
         return {
             id: asignacionCreada.id!,
             id_orden_envio: asignacionCreada.id_orden_envio,
             id_ruta: asignacionCreada.id_ruta,
             id_transportista: asignacionCreada.id_transportista,
-            fecha_asignacion: asignacionCreada.fecha_asignacion
+            fecha_asignacion: asignacionCreada.fecha_asignacion,
+            estado_orden: nuevoEstado
         };
     }
 
