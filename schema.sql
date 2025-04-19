@@ -158,3 +158,11 @@ VALUES ('minivan', 'XYZ789', 750.00);
 INSERT INTO vehiculos (tipo, placa, capacidad_maxima)
 VALUES ('camion', 'TRK456', 5000.00);
 
+INSERT INTO rutas (nombre_ruta, origen, destino, distancia_km)
+VALUES 
+('Medellín - Bogotá', 'Medellín', 'Bogotá', 416.00),
+('Bogotá - Medellín', 'Bogotá', 'Medellín', 416.00),
+('Pereira - Manizales', 'Pereira', 'Manizales', 50.00),
+('Manizales - Pereira', 'Manizales', 'Pereira', 50.00);
+
+

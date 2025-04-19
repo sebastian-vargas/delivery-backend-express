@@ -79,6 +79,10 @@
       "description": "Operaciones relacionadas con asignación de envíos a una ruta y transportista"
     },
     {
+      "name": "reportes",
+      "description": "Operaciones relacionadas con reportes y métricas del sistema"
+    },
+    {
       "name": "websockets",
       "description": "Información sobre la integración de WebSockets para notificaciones en tiempo real"
     }
@@ -1652,6 +1656,678 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WebSocketIntegration"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/envios": {
+      "get": {
+        "tags": ["reportes"],
+        "summary": "Obtener reporte detallado de envíos",
+        "description": "Obtiene un reporte detallado de envíos basado en los filtros proporcionados",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fechaInicio",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha inicial para filtrar envíos (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "fechaFin",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha final para filtrar envíos (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "estado",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Estado de los envíos a filtrar"
+          },
+          {
+            "in": "query",
+            "name": "idTransportista",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del transportista para filtrar envíos"
+          },
+          {
+            "in": "query",
+            "name": "ciudad",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Ciudad para filtrar envíos"
+          },
+          {
+            "in": "query",
+            "name": "tipoPaquete",
+            "schema": {
+              "type": "string",
+              "enum": ["mensajeria", "paqueteria"]
+            },
+            "description": "Tipo de paquete (mensajeria o paqueteria)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Número de página para paginación"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Cantidad de registros por página"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte generado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "idOrdenEnvio": {
+                            "type": "integer"
+                          },
+                          "fechaCreacion": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "guia": {
+                            "type": "string"
+                          },
+                          "estado": {
+                            "type": "string"
+                          },
+                          "nombreDestinatario": {
+                            "type": "string"
+                          },
+                          "nombreRemitente": {
+                            "type": "string"
+                          },
+                          "transportista": {
+                            "type": "string"
+                          },
+                          "ciudad": {
+                            "type": "string"
+                          },
+                          "tipoPaquete": {
+                            "type": "string",
+                            "enum": ["mensajeria", "paqueteria"]
+                          }
+                        }
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "pages": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No autorizado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No tiene permisos para acceder a este recurso"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al generar el reporte de envíos"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/metricas": {
+      "get": {
+        "tags": ["reportes"],
+        "summary": "Obtener métricas generales",
+        "description": "Obtiene métricas de desempeño general del sistema",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fechaInicio",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha inicial para filtrar métricas (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "fechaFin",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha final para filtrar métricas (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Métricas obtenidas correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "totalEnvios": {
+                          "type": "integer"
+                        },
+                        "enviosEntregados": {
+                          "type": "integer"
+                        },
+                        "enviosEnTransito": {
+                          "type": "integer"
+                        },
+                        "tiempoPromedioEntrega": {
+                          "type": "number",
+                          "format": "float"
+                        },
+                        "tasaEntregaATiempo": {
+                          "type": "number",
+                          "format": "float"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No autorizado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No tiene permisos para acceder a este recurso"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al obtener las métricas de desempeño"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/metricas-transportistas": {
+      "get": {
+        "tags": ["reportes"],
+        "summary": "Obtener métricas por transportista",
+        "description": "Obtiene métricas de desempeño por transportista",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fechaInicio",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha inicial para filtrar métricas (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "fechaFin",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha final para filtrar métricas (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "idTransportista",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del transportista específico (opcional)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Métricas obtenidas correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "idTransportista": {
+                            "type": "integer"
+                          },
+                          "nombreTransportista": {
+                            "type": "string"
+                          },
+                          "totalEnvios": {
+                            "type": "integer"
+                          },
+                          "enviosEntregados": {
+                            "type": "integer"
+                          },
+                          "tiempoPromedioEntrega": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "tasaEntregaATiempo": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "puntuacionPromedio": {
+                            "type": "number",
+                            "format": "float"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No autorizado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No tiene permisos para acceder a este recurso"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al obtener las métricas por transportista"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reportes/envios-periodo": {
+      "get": {
+        "tags": ["reportes"],
+        "summary": "Obtener envíos por período",
+        "description": "Obtiene datos de envíos agrupados por período para gráficos y análisis",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fechaInicio",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha inicial para el período (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "fechaFin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Fecha final para el período (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos obtenidos correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "labels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": ["01/05/2023", "02/05/2023", "03/05/2023"]
+                        },
+                        "series": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "example": "Envíos creados"
+                              },
+                              "data": {
+                                "type": "array",
+                                "items": {
+                                  "type": "integer"
+                                },
+                                "example": [5, 7, 3]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Debe proporcionar fechaInicio y fechaFin para obtener los datos del período"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No autorizado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No tiene permisos para acceder a este recurso"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al obtener los datos de envíos por período"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
