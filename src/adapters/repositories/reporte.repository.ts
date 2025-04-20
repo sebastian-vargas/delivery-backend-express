@@ -81,14 +81,14 @@ export class ReporteRepository implements IReporteRepository {
           r.nombre_ruta, r.origen, r.destino, r.distancia_km,
           ae.fecha_asignacion,
           (
-            SELECT JSON_ARRAYAGG(
+            SELECT COALESCE(JSON_ARRAYAGG(
               JSON_OBJECT(
                 'id', he.id,
                 'estado', ee.nombre_estado,
                 'fecha', he.fecha_hora,
                 'observaciones', he.observaciones
               )
-            )
+            ), '[]')
             FROM historial_estados he
             JOIN estados_envio ee ON he.id_estado_envio = ee.id
             WHERE he.id_orden_envio = oe.id
@@ -112,7 +112,7 @@ export class ReporteRepository implements IReporteRepository {
         LEFT JOIN rutas r ON r.id = ae.id_ruta
         ${whereClause}
         ORDER BY oe.created_at DESC
-        LIMIT ? OFFSET ?
+        LIMIT ${parseInt(String(limit))} OFFSET ${parseInt(String(offset))}
       `;
       
       // Consulta para obtener el total de registros (para paginación)
@@ -128,7 +128,7 @@ export class ReporteRepository implements IReporteRepository {
       
       // Ejecutar consultas en paralelo
       const [enviosResult, countResult, metricas] = await Promise.all([
-        query<any[]>(enviosQuery, parametros),
+        query<any[]>(enviosQuery, parametros.slice(0, -2)), // Remove limit and offset from params
         query<[{total: number}]>(countQuery, parametros.slice(0, -2)), // Excluir limit y offset
         this.obtenerMetricasGenerales(filtros)
       ]);
@@ -144,7 +144,15 @@ export class ReporteRepository implements IReporteRepository {
       
       // Transformar los resultados al formato requerido
       const enviosFormateados: OrdenEnvioDetallado[] = enviosResult.map(item => {
-        const historial = item.historial_json ? JSON.parse(item.historial_json) : [];
+        let historial = [];
+        try {
+          if (item.historial_json) {
+            historial = JSON.parse(item.historial_json);
+          }
+        } catch (error) {
+          console.error('Error al parsear historial_json:', error);
+          console.log('Valor de historial_json:', item.historial_json);
+        }
         
         const envio: OrdenEnvioDetallado = {
           id: item.id,
@@ -436,7 +444,7 @@ export class ReporteRepository implements IReporteRepository {
       
       const query = `
         SELECT 
-          DATE_FORMAT(created_at, ?) as fecha,
+          DATE_FORMAT(created_at, '${formatoFecha}') as fecha,
           COUNT(*) as cantidad
         FROM ordenes_envio
         WHERE created_at BETWEEN ? AND ?
@@ -446,7 +454,7 @@ export class ReporteRepository implements IReporteRepository {
       
       const result = await this.query<Array<{ fecha: string; cantidad: number }>>(
         query,
-        [formatoFecha, fechaInicio, fechaFin]
+        [fechaInicio, fechaFin]
       );
       
       return result;

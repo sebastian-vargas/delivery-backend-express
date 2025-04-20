@@ -1,7 +1,6 @@
 import { Application } from 'express';
 import authRoutes from './auth.routes';
 import envioRoutes from './envio.routes';
-import asignarRoutes from './asignar.routes';
 import reporteRoutes from './reporte.routes';
 import logisticaRoutes from './logistica.routes';
 
